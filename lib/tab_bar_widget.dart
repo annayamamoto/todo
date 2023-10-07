@@ -13,18 +13,21 @@ class TabBarWidget extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _controller = useTabController(initialLength: tabList.length);
+    final controller = useTabController(initialLength: tabList.length);
     return Column(
       children: [
         TabBar(
           tabs: tabList,
-          controller: _controller,
+          controller: controller,
         ),
         Expanded(
-          child: TabBarView(controller: _controller, children: [
-            TodoListView(),
-            const Center(child: Text('Tab 2 View')),
-          ]),
+          child: TabBarView(
+            controller: controller,
+            children: const [
+              TodoListView(),
+              Center(child: Text('Tab 2 View')),
+            ],
+          ),
         )
       ],
     );
