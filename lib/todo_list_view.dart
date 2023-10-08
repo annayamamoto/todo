@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:todo/Widget/todo_card_widget.dart';
 
 class TodoListView extends HookWidget {
   const TodoListView({
@@ -27,16 +28,21 @@ class TodoListView extends HookWidget {
     final todoCheckedStates = useState<List<bool>>(
         List.generate(todoList.value.length, (index) => (false)));
 
+    // todoタスクを削除する
     void removeTodoAt(int index) {
       String removedItem = todoList.value[index];
       bool isChecked = todoCheckedStates.value[index];
+      // listKeyを使用してAnimatedListの状態にアクセスし、
+      // removeItemメソッドを用いてアニメーションをつけてtodoタスクを削除する
       listKey.currentState!.removeItem(
         index,
         (context, animation) =>
             _buildRemovedItem(removedItem, isChecked, context, animation),
+        // 削除のアニメーション時間
         duration: const Duration(milliseconds: 300),
       );
 
+      // todoListとtodoCheckedStatesから削除したtodoタスクを取り除く
       todoList.value = List.of(todoList.value)..removeAt(index);
       todoCheckedStates.value = List.of(todoCheckedStates.value)
         ..removeAt(index);
@@ -50,30 +56,11 @@ class TodoListView extends HookWidget {
             position: animation.drive(
                 Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
                     .chain(CurveTween(curve: Curves.easeInOut))),
-            child: Card(
-              child: CheckboxListTile(
-                controlAffinity: ListTileControlAffinity.leading,
-                title: Text(
-                  todoList.value[index],
-                  style: todoCheckedStates.value[index]
-                      ? const TextStyle(decoration: TextDecoration.lineThrough)
-                      : null,
-                ),
-                value: todoCheckedStates.value[index],
-                onChanged: (newValue) {
-                  todoCheckedStates.value = List.of(todoCheckedStates.value)
-                    ..[index] = newValue!;
-
-                  if (newValue) {
-                    // 1秒後に削除
-                    Future.delayed(const Duration(milliseconds: 600), () {
-                      if (todoCheckedStates.value[index]) {
-                        removeTodoAt(index);
-                      }
-                    });
-                  }
-                },
-              ),
+            child: TodoCardWidget(
+              todoText: todoList.value[index],
+              index: index,
+              todoCheckedStates: todoCheckedStates,
+              removeTodo: removeTodoAt,
             ),
           );
         });
